@@ -273,7 +273,7 @@ class MasterPrompt2StagesTest {
         composeRule.onNodeWithTag("drawer_search_field").assertIsDisplayed()
         composeRule.onNodeWithTag("drawer_item_library").assertIsDisplayed()
         composeRule.onNodeWithTag("drawer_item_customize").assertIsDisplayed()
-        composeRule.onNodeWithTag("drawer_item_privacy").assertIsDisplayed()
+        composeRule.onNodeWithTag("drawer_item_privacy").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag("drawer_new_chat_button").assertIsDisplayed()
         assertTrue(composeRule.onAllNodesWithText("Get Plus", substring = true, ignoreCase = true).fetchSemanticsNodes().isEmpty())
     }

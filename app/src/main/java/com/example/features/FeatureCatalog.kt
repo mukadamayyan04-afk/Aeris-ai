@@ -206,6 +206,7 @@ object FeatureCatalog {
         voice(12, "Audio Focus Ducking", "Respectfully pauses/ducks background media during TTS or STT.", perm = null),
         voice(13, "Opt-In Wake Word Service", "Foreground microphone keyword listener ('Hey AERIS') with Stop action.", FeatureRouteTarget.VOICE_SETTINGS, FeatureStatus.DEVELOPED, limitation = "Requires external libsherpa-onnx-jni.so + KWS model weights for offline spotting."),
         voice(14, "Room Voice Task Audit Log", "Inspect recognized voice commands, durations, and errors in Voice Settings.", FeatureRouteTarget.VOICE_SETTINGS, perm = null),
+        voice(15, "Voice Assistant", "Open the full-screen AERIS voice assistant with push-to-talk, editable transcripts, and spoken responses."),
 
         // D. Productivity (14 features)
         prod(1, "Project Workspaces", "Organize scoped chats, notes, task checklists, and files per project.", FeatureRouteTarget.PROJECTS),
@@ -252,6 +253,7 @@ object FeatureCatalog {
         coach(8, "Voice Strategy Mode", "Listen to tactical tips hands-free via Voice HUD.", target = FeatureRouteTarget.VOICE_ASSISTANT, status = FeatureStatus.COMPLETED),
         coach(9, "Build / Loadout Planner", "Save game loadouts or patch notes in Project Workspaces.", target = FeatureRouteTarget.PROJECTS, status = FeatureStatus.COMPLETED),
         coach(10, "Session Advice History Feed", "Review recent visual coaching callouts cleanly inside Game Coach."),
+        coach(11, "Game Coach", "Open the consent-based gameplay coaching workspace and session controls."),
 
         // G. System & AI Management (14 features)
         sys(1, "AI Operating Mode Switcher", "Switch cleanly between Hybrid, Online-Only, and Local-Only AI modes.", FeatureRouteTarget.AI_PROVIDERS),

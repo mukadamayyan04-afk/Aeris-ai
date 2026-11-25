@@ -289,7 +289,7 @@ class VoiceBackendRobolectricTest {
     }
 
     @Test
-    fun aeris_ai_engine_uses_history_and_memories_locally(): Unit = runBlocking {
+    fun aeris_ai_engine_refuses_fake_local_replies_without_native_inference(): Unit = runBlocking {
         val engine = AerisAiEngine(context)
         val history = listOf(
             ChatMessage(conversationId = 1L, sender = MessageSender.USER, text = "Check my Redmi 13 specs"),
@@ -297,15 +297,17 @@ class VoiceBackendRobolectricTest {
         )
         val memories = listOf(MemoryItem(id = 1L, key = "Project", content = "AERIS AI"))
 
-        val tokens = engine.generateStream(
-            prompt = "explain more about my Project",
-            history = history,
-            memories = memories
-        ).toList()
+        val result = runCatching {
+            engine.generateStream(
+                prompt = "explain more about my Project",
+                history = history,
+                memories = memories
+            ).toList()
+        }
 
-        val output = tokens.joinToString("")
-        assertTrue(output.contains("Sir ji"))
-        assertTrue(output.contains("AERIS AI"))
-        assertTrue(output.contains("Check my Redmi 13 specs"))
+        assertTrue("Local-only generation must fail until native inference is implemented.", result.isFailure)
+        assertTrue(
+            result.exceptionOrNull()?.message.orEmpty().contains("llama.cpp JNI inference bridge is not implemented")
+        )
     }
 }

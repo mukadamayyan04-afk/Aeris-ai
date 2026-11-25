@@ -200,7 +200,7 @@ class MultiProviderAndSpeedBenchmarkTest {
     }
 
     @Test
-    fun benchmark_ten_representative_requests_and_failover_continuity(): Unit = runBlocking {
+    fun offline_only_requests_fail_closed_without_native_inference(): Unit = runBlocking {
         val engine = AerisAiEngine(context)
         engine.updateRoutingPreferences(
             freeOnly = true,
@@ -245,22 +245,21 @@ class MultiProviderAndSpeedBenchmarkTest {
                 forceOfflineOnly = true
             ).toList()
             val fullText = events.joinToString("") { it.textChunk }
-            assertTrue("Prompt '$p' must produce non-empty output", fullText.isNotBlank())
+            assertTrue("Offline mode must not fabricate a response for '$p'.", fullText.isBlank())
+            assertTrue(
+                "Offline mode must explain why inference is unavailable for '$p'.",
+                events.any { it.errorMessage?.contains("unavailable", ignoreCase = true) == true }
+            )
         }
 
         val summary = engine.telemetrySummary.value
         assertEquals(10, summary.totalRequests)
-        assertEquals(10, summary.successfulRequests)
-        assertNotNull(summary.averageTtftMs)
-        assertNotNull(summary.averageTotalGenMs)
+        assertEquals(0, summary.successfulRequests)
         assertNotNull(summary.averageAndroidPrepMs)
         println(
-            "BENCHMARK_10REQ_OFFLINE_TELEMETRY: total=${summary.totalRequests}, ok=${summary.successfulRequests}, " +
-                "avgPrepMs=${summary.averageAndroidPrepMs}, avgTtftMs=${summary.averageTtftMs}, " +
-                "avgTotalMs=${summary.averageTotalGenMs}, avgTokPerSec=${summary.averageTokensPerSec}"
+            "OFFLINE_FAIL_CLOSED_TELEMETRY: total=${summary.totalRequests}, ok=${summary.successfulRequests}, " +
+                "avgPrepMs=${summary.averageAndroidPrepMs}"
         )
-        // Because artificial per-token delay was removed, average local TTFT & total must be fast (< 250ms in JVM)
-        assertTrue("Expected fast local TTFT, was ${summary.averageTtftMs}ms", summary.averageTtftMs!! < 250L)
 
         // Smart context filter check: "Hello AERIS" should NOT inject unrelated "Coffee" memory
         val filteredSimple = engine.longTermMemoryEngine.selectRelevantMemories("Hello AERIS", memories)
