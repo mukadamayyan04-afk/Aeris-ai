@@ -12,7 +12,7 @@ pluginManagement {
   }
 }
 
-plugins { id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0" }
+// JDK is provisioned by the build environment; no toolchain download resolver is required.
 
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
