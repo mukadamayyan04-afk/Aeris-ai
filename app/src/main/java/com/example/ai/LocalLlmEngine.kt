@@ -4,8 +4,6 @@ import android.os.Build
 import com.example.domain.model.ChatMessage
 import com.example.domain.model.MemoryItem
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,8 +40,6 @@ class LocalLlmEngine : LocalAiEngine {
         )
     )
     override val state: Flow<ModelEngineState> = _state.asStateFlow()
-
-    private var isCancelled = false
 
     init {
         checkNativeBridge()
@@ -131,9 +127,7 @@ class LocalLlmEngine : LocalAiEngine {
         )
     }.flowOn(Dispatchers.Default)
 
-    override suspend fun cancelGeneration() {
-        isCancelled = true
-    }
+    override suspend fun cancelGeneration() = Unit
 
     private fun synthesizeLocalResponse(prompt: String, memories: List<MemoryItem>): String {
         val lower = prompt.lowercase(Locale.ROOT).trim()

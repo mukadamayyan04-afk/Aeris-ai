@@ -143,14 +143,20 @@ class MasterPrompt1StagesTest {
         assertTrue(insufficient.isFailure)
         assertEquals(LocalModelLifecycleState.ERROR, localEngine.lifecycleState.value)
 
-        val sufficient = localEngine.loadModelWithRamCheck(
-            modelPath = "/tmp/gemma-3-1b-it-q4.gguf",
+        val modelFile = File(context.cacheDir, "gemma-3-1b-it-q4-test.gguf").apply {
+            writeBytes(byteArrayOf(0x47, 0x47, 0x55, 0x46))
+        }
+        val sufficientRamButMissingRuntime = localEngine.loadModelWithRamCheck(
+            modelPath = modelFile.absolutePath,
             modelId = "gemma-3-1b-it-q4",
             requiredRamMb = 1500,
             availableRamMb = 4096
         )
-        assertTrue(sufficient.isSuccess)
-        assertEquals(LocalModelLifecycleState.READY, localEngine.lifecycleState.value)
+        // RAM headroom and a placeholder GGUF file must never be reported as a loaded neural model.
+        assertTrue(sufficientRamButMissingRuntime.isFailure)
+        assertEquals(LocalModelLifecycleState.ERROR, localEngine.lifecycleState.value)
+        assertFalse(localEngine.isModelLoaded())
+        modelFile.delete()
 
         // Operating mode routing enforcement
         val manager = ProviderIntegrationManager(context)
@@ -265,7 +271,7 @@ class MasterPrompt1StagesTest {
                 providerType = AiProviderType.CLOUDFLARE_WORKERS_AI,
                 baseUrl = cfUrl,
                 modelId = "@cf/meta/llama-3.1-8b-instruct",
-                bearerToken = "cf-secret-token"
+                bearerToken = "test-cloudflare-token"
             ),
             builtPrompt = prompt
         ).toList().joinToString("")
@@ -276,7 +282,7 @@ class MasterPrompt1StagesTest {
     @Test
     fun stage2_compose_api_key_entry_never_prefills_plaintext_saved_key() {
         val vm = MainViewModel(context)
-        val secretToken = "gsk_super_secret_plain_9876"
+        val secretToken = "test-groq-key-9876"
         vm.saveEndpointConfig(
             providerType = AiProviderType.GROQ,
             baseUrl = AiProviderType.GROQ.defaultBaseUrl,
@@ -308,7 +314,7 @@ class MasterPrompt1StagesTest {
             providerType = AiProviderType.OPENROUTER,
             baseUrl = AiProviderType.OPENROUTER.defaultBaseUrl,
             modelId = "meta-llama/llama-3.3-70b-instruct:free",
-            token = "sk-or-v1-sample5566"
+            token = "test-openrouter-key-5566"
         )
         composeRule.setContent {
             AiProvidersScreen(
