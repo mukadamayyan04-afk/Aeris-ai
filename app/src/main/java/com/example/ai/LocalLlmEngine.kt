@@ -126,22 +126,9 @@ class LocalLlmEngine : LocalAiEngine {
         history: List<ChatMessage>,
         memories: List<MemoryItem>
     ): Flow<String> = flow {
-        isCancelled = false
-        _lifecycleState.value = LocalModelLifecycleState.RUNNING
-        try {
-            PromptFormatter.format(prompt, history, memories)
-            val response = synthesizeLocalResponse(prompt, memories)
-            val chunks = response.chunked(48)
-            for (token in chunks) {
-                currentCoroutineContext().ensureActive()
-                if (isCancelled) break
-                emit(token)
-            }
-        } finally {
-            if (_state.value.isLoaded) {
-                _lifecycleState.value = LocalModelLifecycleState.READY
-            }
-        }
+        throw IllegalStateException(
+            "Neural offline chat is unavailable: the llama.cpp JNI inference bridge is not implemented in this build."
+        )
     }.flowOn(Dispatchers.Default)
 
     override suspend fun cancelGeneration() {
