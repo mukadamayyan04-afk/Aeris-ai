@@ -2,7 +2,7 @@
 
 AERIS AI is an Android assistant project built with Kotlin and Jetpack Compose. Its development direction is privacy-conscious and local-first, with a focus on chat, voice interaction, conversation memory, and device-aware assistance.
 
-> **Status: Work in progress.** This repository is not yet a verified release. Some capabilities may be incomplete, unavailable, or under testing. Do not assume that offline AI inference, speech recognition, persistent memory, or device actions are production-ready until each is implemented and tested end to end.
+> **Status: Work in progress.** AERIS AI v1.0.1 has a verified signed debug APK and a passing unit-test suite. It is not a production release. Some capabilities remain incomplete or unavailable; offline AI inference, speech recognition, persistent memory, and device actions must be verified individually before being advertised as production-ready.
 
 ## Project overview
 
@@ -15,7 +15,7 @@ AERIS AI is an Android assistant project built with Kotlin and Jetpack Compose. 
 | Minimum Android version | Android 8.0 (API 26) |
 | Compile SDK | 36 |
 | Target SDK | 36 |
-| Version name | 1.0 (Gradle configuration) |
+| Version name | 1.0.1 (Gradle configuration) |
 
 The Android app module includes dependencies for Compose, Navigation, Room, DataStore, WorkManager, CameraX, Retrofit/OkHttp, Firebase AI, and Android testing. A dependency being present does not mean its related feature is complete or enabled.
 
@@ -72,7 +72,7 @@ The app uses the Gradle Secrets plugin and supports a local `.env` file with `.e
 
 ## Release status
 
-No verified public APK release is documented here yet. A source-code commit or a configured build workflow is not proof that an APK was successfully built. Before publishing a release, confirm that the build succeeds, install the APK on a supported device, and test the features being advertised.
+AERIS AI v1.0.1 debug APK was assembled successfully and its APK archive and Android signing were verified. The unit-test suite completed successfully (53 tests); a physical-device installation/smoke test has not yet been performed. The APK is signed with a debug key, not a production release key. The build also reported that `google-services.json` is missing, so Firebase-dependent features need valid Firebase configuration before they can be considered ready. The llama.cpp JNI inference bridge is not implemented, so offline local AI inference remains unavailable.
 
 ## Contributing
 
