@@ -1,0 +1,6 @@
+{
+  "name": "AERIS AI",
+  "description": "AERIS AI — Futuristic Cyan + Black female holographic personal AI assistant with dual Normal and Work modes, voice intelligence, and offline-first capabilities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
