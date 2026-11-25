@@ -172,6 +172,8 @@ class MasterPrompt1StagesTest {
             operatingMode = AiOperatingMode.LOCAL_ONLY
         )
         assertEquals(AiProviderType.ON_DEVICE_CORE, localOnly.selectedModel.provider)
+        val offlineCoreProbe = manager.testModelConnection(ModelHealthQuotaManager.LOCAL_CORE_MODEL_ID)
+        assertTrue("Offline core must not claim a successful connection without neural inference.", offlineCoreProbe.isFailure)
         assertTrue(
             localOnly.blockedModels.any {
                 it.contains(GeminiFirebaseProviderAdapter.DEFAULT_GEMINI_MODEL) && it.contains("Local-Only")

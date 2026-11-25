@@ -338,7 +338,7 @@ class ProviderIntegrationManager(
                     AiTaskCategory.GENERAL_CHAT
                 ),
                 priorityScore = 30,
-                disclosureNote = "Always-available 100% free offline rule & memory fallback."
+                disclosureNote = "Neural offline inference is unavailable until the llama.cpp JNI runtime is implemented and verified."
             )
         )
     }
@@ -383,8 +383,9 @@ class ProviderIntegrationManager(
                 }
             }
             AiProviderType.ON_DEVICE_CORE -> {
-                healthManager.markConnected(descriptor.id, 5L, ttftMs = 5L)
-                Result.success(5L)
+                val msg = "Offline neural inference is not available in this build: the llama.cpp JNI inference bridge is not implemented."
+                healthManager.markUnavailable(descriptor.id, msg)
+                Result.failure(IllegalStateException(msg))
             }
         }
     }
@@ -430,7 +431,7 @@ class ProviderIntegrationManager(
                     networkUp && cfg != null && cfg.hasBaseAndModelOnly
                 }
                 AiProviderType.LOCAL_GGUF -> !_activeGgufModelId.value.isNullOrBlank()
-                AiProviderType.ON_DEVICE_CORE -> true
+                AiProviderType.ON_DEVICE_CORE -> false
             }
         }
         targets.map { desc ->
@@ -463,7 +464,7 @@ class ProviderIntegrationManager(
             }
             AiProviderType.LOCAL_GGUF,
             AiProviderType.ON_DEVICE_CORE -> {
-                localAdapter.streamOfflineResponse(rawPrompt, history, memories, continuity)
+                localAdapter.localEngine.generateStream(rawPrompt, history, memories)
             }
         }
     }
