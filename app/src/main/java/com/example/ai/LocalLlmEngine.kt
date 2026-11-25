@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import java.util.Locale
 
 interface LocalAiEngine : LlmEngine {
     val lifecycleState: StateFlow<LocalModelLifecycleState>
@@ -109,7 +108,7 @@ class LocalLlmEngine : LocalAiEngine {
             isLoaded = false,
             modelId = null,
             modelName = null,
-            memoryUsageMb = 12L
+            memoryUsageMb = 0L
         )
         _lifecycleState.value = LocalModelLifecycleState.NOT_DOWNLOADED
         Result.success(Unit)
@@ -121,7 +120,7 @@ class LocalLlmEngine : LocalAiEngine {
         prompt: String,
         history: List<ChatMessage>,
         memories: List<MemoryItem>
-    ): Flow<String> = flow {
+    ): Flow<String> = flow<String> {
         throw IllegalStateException(
             "Neural offline chat is unavailable: the llama.cpp JNI inference bridge is not implemented in this build."
         )
@@ -129,50 +128,5 @@ class LocalLlmEngine : LocalAiEngine {
 
     override suspend fun cancelGeneration() = Unit
 
-    private fun synthesizeLocalResponse(prompt: String, memories: List<MemoryItem>): String {
-        val lower = prompt.lowercase(Locale.ROOT).trim()
 
-        val relevantMem = memories.filter { lower.contains(it.key.lowercase(Locale.ROOT)) }
-        val memoryContext = if (relevantMem.isNotEmpty()) {
-            " [Recalled from local memory: " + relevantMem.joinToString("; ") { "${it.key} = ${it.content}" } + "]"
-        } else ""
-
-        return when {
-            lower.contains("who are you") || lower.contains("what is aeris") -> {
-                "I am AERIS AI, your offline-first native Android personal assistant. I run locally on your device with private Room storage.$memoryContext"
-            }
-            lower.contains("flashlight") || lower.contains("torch") -> {
-                "Checking device flashlight action now."
-            }
-            lower.contains("timer") || lower.contains("alarm") -> {
-                "Device timer and alarm actions are linked to your native Android Clock service."
-            }
-            lower.contains("memory") || lower.contains("remember") -> {
-                if (lower.startsWith("remember") || lower.contains("save memory")) {
-                    "I can store that in your persistent local Room Memory Bank."
-                } else {
-                    if (memories.isEmpty()) {
-                        "Your local memory bank is currently empty. You can teach me facts, preferences, or notes anytime in the Memory tab."
-                    } else {
-                        "You currently have ${memories.size} saved memories in your local Room storage:$memoryContext"
-                    }
-                }
-            }
-            lower.contains("diagnostics") || lower.contains("ram") || lower.contains("specs") -> {
-                "System Diagnostics: Device check indicates ${if (isArm64) "ARM64-v8a architecture (Redmi 13 5G optimized)" else "Standard CPU"}. Memory usage is nominal."
-            }
-            lower.contains("work mode") -> {
-                "Work Mode can be activated anytime to rotate into the multi-pane landscape console."
-            }
-            lower.contains("hello") || lower.contains("hi") || lower.contains("hey aeris") -> {
-                "Namaste Sir ji! AERIS HUD is online, telemetry is nominal, and local models are ready.$memoryContext"
-            }
-            lower.contains("help") -> {
-                "AERIS AI Capabilities:\n• Real-time chat and speech input/output\n• Dual Normal HUD & Work Mode landscape console\n• Persistent Room memory, Project Workspaces & Search\n• Multi-provider AI routing & GGUF local weights\n• Comprehensive Device Diagnostics"
-            }
-            else -> {
-                "Acknowledged, Sir ji: \"$prompt\". Processed locally via AERIS On-Device Core.$memoryContext"
-            }
-        }
-    }
 }
