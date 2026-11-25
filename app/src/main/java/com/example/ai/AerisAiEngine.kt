@@ -116,12 +116,12 @@ class AerisAiEngine(
 
     private val _state = MutableStateFlow(
         ModelEngineState(
-            isLoaded = true,
-            modelId = GeminiFirebaseProviderAdapter.DEFAULT_GEMINI_MODEL,
-            modelName = "AERIS Brain (Gemini 3.8 Flash / Offline Standby)",
-            engineType = "Independent 11-Engine Hybrid Router",
-            memoryUsageMb = 48L,
-            nativeLibraryStatus = "App Check + Multi-Provider Router Ready",
+            isLoaded = false,
+            modelId = null,
+            modelName = "No verified AI provider",
+            engineType = "Provider connection not verified",
+            memoryUsageMb = 0L,
+            nativeLibraryStatus = "Waiting for a successful provider response",
             supportsArm64V8a = isArm64
         )
     )
@@ -211,7 +211,12 @@ class AerisAiEngine(
         if (result.isSuccess) {
             providerIntegrationManager.setLoadedGgufModel(modelId)
             _activeProvider.value = ActiveAiProvider.LOCAL_GGUF_MODEL
-            updateStateDisplay(modelId, "GGUF: $modelId")
+            updateStateDisplay(
+                modelId = modelId,
+                modelName = "GGUF: $modelId",
+                verifiedLoaded = true,
+                status = "Local model load completed"
+            )
         }
         result
     }
@@ -220,7 +225,12 @@ class AerisAiEngine(
         val result = localEngine.unloadModel()
         providerIntegrationManager.setLoadedGgufModel(null)
         _activeProvider.value = ActiveAiProvider.ON_DEVICE_OFFLINE
-        updateStateDisplay(ModelHealthQuotaManager.LOCAL_CORE_MODEL_ID, "AERIS On-Device Core (Offline)")
+        updateStateDisplay(
+            modelId = ModelHealthQuotaManager.LOCAL_CORE_MODEL_ID,
+            modelName = "AERIS On-Device Core (Offline)",
+            verifiedLoaded = false,
+            status = "No local model loaded"
+        )
         result
     }
 
@@ -357,7 +367,12 @@ class AerisAiEngine(
             val chosen = decision.selectedModel
             triedIds.add(chosen.id)
             _lastRoutingDecision.value = decision
-            updateStateDisplay(chosen.id, chosen.displayName)
+            updateStateDisplay(
+                modelId = chosen.id,
+                modelName = chosen.displayName,
+                verifiedLoaded = false,
+                status = "Selected; waiting for a successful response"
+            )
             syncProviderEnum(chosen.provider)
 
             emit(
@@ -406,6 +421,16 @@ class AerisAiEngine(
                         chunkCount++
                         totalChars += chunk.length
                         streamedAnyToken = true
+                        _state.value = _state.value.copy(
+                            isLoaded = true,
+                            modelId = chosen.id,
+                            modelName = chosen.displayName,
+                            engineType = if (chosen.provider == AiProviderType.LOCAL_GGUF ||
+                                chosen.provider == AiProviderType.ON_DEVICE_CORE
+                            ) "Verified local inference" else "Verified remote provider response",
+                            memoryUsageMb = 0L,
+                            nativeLibraryStatus = "Successful response received; device model memory not measured"
+                        )
                         emit(
                             BrainGenerationEvent(
                                 textChunk = chunk,
@@ -501,12 +526,19 @@ class AerisAiEngine(
         }
     }.flowOn(Dispatchers.Default)
 
-    private fun updateStateDisplay(modelId: String, modelName: String) {
+    private fun updateStateDisplay(
+        modelId: String,
+        modelName: String,
+        verifiedLoaded: Boolean = false,
+        status: String = "Provider selected; connection not verified"
+    ) {
         _state.value = _state.value.copy(
-            isLoaded = true,
+            isLoaded = verifiedLoaded,
             modelId = modelId,
             modelName = modelName,
-            engineType = "AERIS 11-Engine Brain"
+            engineType = if (verifiedLoaded) "Verified AI runtime" else "Provider selection",
+            memoryUsageMb = 0L,
+            nativeLibraryStatus = status
         )
     }
 

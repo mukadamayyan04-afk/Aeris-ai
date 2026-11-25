@@ -19,6 +19,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
+import com.example.ai.ActiveAiProvider
+import com.example.ai.AerisAiEngine
 import com.example.ai.AerisPersonalityStyle
 import com.example.ai.AerisResponseLength
 import com.example.ai.AiOperatingMode
@@ -65,6 +67,7 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -86,6 +89,24 @@ class MasterPrompt1StagesTest {
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
+    }
+
+    @Test
+    fun ai_engine_does_not_claim_provider_ready_before_a_real_response() = runBlocking {
+        val engine = AerisAiEngine(context)
+
+        val initial = engine.state.first()
+        assertFalse(initial.isLoaded)
+        assertNull(initial.modelId)
+        assertEquals(0L, initial.memoryUsageMb)
+        assertTrue(initial.nativeLibraryStatus.contains("Waiting", ignoreCase = true))
+
+        engine.setProvider(ActiveAiProvider.GEMINI_FIREBASE)
+        val selectedButUntested = engine.state.first()
+        assertFalse(selectedButUntested.isLoaded)
+        assertEquals(GeminiFirebaseProviderAdapter.DEFAULT_GEMINI_MODEL, selectedButUntested.modelId)
+        assertEquals(0L, selectedButUntested.memoryUsageMb)
+        assertTrue(selectedButUntested.nativeLibraryStatus.contains("not verified", ignoreCase = true))
     }
 
     // ==========================

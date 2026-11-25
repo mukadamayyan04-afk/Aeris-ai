@@ -190,13 +190,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
             ModelEngineState(
-                isLoaded = true,
-                modelId = GeminiFirebaseProviderAdapter.DEFAULT_GEMINI_MODEL,
-                modelName = "AERIS Brain (Gemini 3.8 Flash / Offline Standby)",
-                engineType = "AERIS 11-Engine Brain",
-                memoryUsageMb = 48L,
-                nativeLibraryStatus = "App Check + Multi-Model Router Ready",
-                supportsArm64V8a = true
+                isLoaded = false,
+                modelId = null,
+                modelName = "No verified AI provider",
+                engineType = "Provider connection not verified",
+                memoryUsageMb = 0L,
+                nativeLibraryStatus = "Waiting for a successful provider response",
+                supportsArm64V8a = android.os.Build.SUPPORTED_ABIS.any { it.contains("arm64-v8a", ignoreCase = true) }
             )
         )
 
