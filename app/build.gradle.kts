@@ -16,8 +16,8 @@ android {
     applicationId = "com.aeris.ai"
     minSdk = 26
     targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
+    versionCode = 2
+    versionName = "1.0.1"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -142,10 +142,4 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.tooling)
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
-}
-
-// Temporary low-memory test-worker settings for this constrained build sandbox.
-tasks.withType<Test>().configureEach {
-  maxHeapSize = "768m"
-  forkEvery = 1
 }
