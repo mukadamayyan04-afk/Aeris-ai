@@ -27,17 +27,17 @@ class LocalLlmEngine : LocalAiEngine {
     private var isNativeLibLoaded = false
     private var nativeInitStatus = "Uninitialized"
 
-    private val _lifecycleState = MutableStateFlow(LocalModelLifecycleState.READY)
+    private val _lifecycleState = MutableStateFlow(LocalModelLifecycleState.NOT_DOWNLOADED)
     override val lifecycleState: StateFlow<LocalModelLifecycleState> = _lifecycleState.asStateFlow()
 
     private val _state = MutableStateFlow(
         ModelEngineState(
-            isLoaded = true,
-            modelId = "aeris-embedded-core",
-            modelName = "AERIS On-Device Core Engine (Offline)",
-            engineType = "Hybrid Local Reasoning Engine",
-            memoryUsageMb = 48L,
-            nativeLibraryStatus = "ARM64 JNI bridge standby (libllama.so pending build-stage link)",
+            isLoaded = false,
+            modelId = null,
+            modelName = null,
+            engineType = "llama.cpp local inference (runtime verification required)",
+            memoryUsageMb = 0L,
+            nativeLibraryStatus = "Native inference runtime not verified",
             supportsArm64V8a = isArm64
         )
     )
@@ -56,7 +56,7 @@ class LocalLlmEngine : LocalAiEngine {
             nativeInitStatus = "llama.cpp JNI arm64-v8a active"
         } catch (_: UnsatisfiedLinkError) {
             isNativeLibLoaded = false
-            nativeInitStatus = "libllama.so not present in bundle; using verified local fallback engine"
+            nativeInitStatus = "libllama.so missing; neural local inference unavailable"
         }
         _state.value = _state.value.copy(
             nativeLibraryStatus = nativeInitStatus
@@ -87,20 +87,25 @@ class LocalLlmEngine : LocalAiEngine {
                 IllegalStateException("Insufficient free RAM (${availableRamMb} MB available, ${requiredRamMb} MB required for $modelId).")
             )
         }
-        _lifecycleState.value = LocalModelLifecycleState.LOADING
-        try {
-            _state.value = _state.value.copy(
-                isLoaded = true,
-                modelId = modelId,
-                modelName = modelId.replace("-", " ").uppercase(Locale.ROOT),
-                memoryUsageMb = 380L
+        if (!java.io.File(modelPath).isFile) {
+            _lifecycleState.value = LocalModelLifecycleState.NOT_DOWNLOADED
+            return@withContext Result.failure(
+                IllegalArgumentException("Model file does not exist at the selected path.")
             )
-            _lifecycleState.value = LocalModelLifecycleState.READY
-            Result.success(true)
-        } catch (e: Exception) {
-            _lifecycleState.value = LocalModelLifecycleState.ERROR
-            Result.failure(e)
         }
+        if (!isNativeLibLoaded) {
+            _lifecycleState.value = LocalModelLifecycleState.ERROR
+            return@withContext Result.failure(
+                IllegalStateException("Local model was not loaded: the llama.cpp native runtime is missing.")
+            )
+        }
+
+        // A shared library alone does not prove that token inference is wired.
+        // Keep loading blocked until the JNI inference bridge is implemented and verified.
+        _lifecycleState.value = LocalModelLifecycleState.ERROR
+        Result.failure(
+            IllegalStateException("Local model loading is unavailable until the llama.cpp JNI inference bridge is implemented and verified.")
+        )
     }
 
     override suspend fun unloadModel(): Result<Unit> = withContext(Dispatchers.Default) {
