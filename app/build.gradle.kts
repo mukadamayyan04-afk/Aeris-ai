@@ -143,3 +143,9 @@ dependencies {
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
 }
+
+// Temporary low-memory test-worker settings for this constrained build sandbox.
+tasks.withType<Test>().configureEach {
+  maxHeapSize = "768m"
+  forkEvery = 1
+}
