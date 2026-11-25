@@ -1,16 +1,14 @@
 pluginManagement {
   repositories {
-    maven {
-      url = uri("http://127.0.0.1:8765/google")
-      isAllowInsecureProtocol = true
+    google {
       content {
         includeGroupByRegex("com\\.android.*")
         includeGroupByRegex("com\\.google.*")
         includeGroupByRegex("androidx.*")
       }
     }
-    maven { url = uri("http://127.0.0.1:8765/central"); isAllowInsecureProtocol = true }
-    maven { url = uri("http://127.0.0.1:8765/plugins"); isAllowInsecureProtocol = true }
+    mavenCentral()
+    gradlePluginPortal()
   }
 }
 
@@ -19,8 +17,8 @@ pluginManagement {
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
-    maven { url = uri("http://127.0.0.1:8765/google"); isAllowInsecureProtocol = true }
-    maven { url = uri("http://127.0.0.1:8765/central"); isAllowInsecureProtocol = true }
+    google()
+    mavenCentral()
   }
 }
 
