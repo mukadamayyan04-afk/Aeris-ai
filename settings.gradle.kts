@@ -1,16 +1,27 @@
 pluginManagement {
   repositories {
-    maven { url = uri("http://127.0.0.1:8761"); isAllowInsecureProtocol = true }
-    maven { url = uri("http://127.0.0.1:8762"); isAllowInsecureProtocol = true }
-    maven { url = uri("http://127.0.0.1:8763"); isAllowInsecureProtocol = true }
+    google {
+      content {
+        includeGroupByRegex("com\\.android.*")
+        includeGroupByRegex("com\\.google.*")
+        includeGroupByRegex("androidx.*")
+      }
+    }
+    mavenCentral()
+    gradlePluginPortal()
   }
 }
+
+// JDK is provisioned by the build environment; no toolchain download resolver is required.
+
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
-    maven { url = uri("http://127.0.0.1:8761"); isAllowInsecureProtocol = true }
-    maven { url = uri("http://127.0.0.1:8762"); isAllowInsecureProtocol = true }
+    google()
+    mavenCentral()
   }
 }
+
 rootProject.name = "AERIS AI"
+
 include(":app")
